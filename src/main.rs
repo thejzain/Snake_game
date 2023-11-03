@@ -102,11 +102,18 @@ struct Apple {
 
 impl Apple {
     fn render(&self, gl: &mut GlGraphics, args: &RenderArgs) {
-        // let white = [0.0, 0.0, 0.0, 0.0];
-        // gl.draw(args.viewport(), |c, gl| {
-        //     let transform = c.transform;
+        const BLACK: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
-        // })
+        let x = self.x * 20;
+        let y = self.y * 20;
+
+        let square = graphics::rectangle::square(x as f64, y as f64, 20 as f64);
+
+        gl.draw(args.viewport(), |c, gl| {
+            let transform = c.transform;
+
+            graphics::rectangle(BLACK, square, transform, gl)
+        });
     }
 }
 
