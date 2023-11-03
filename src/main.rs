@@ -9,6 +9,8 @@ use piston::event_loop::*;
 use piston::input::*;
 use piston::window::WindowSettings;
 
+use std::collections::LinkedList;
+
 #[derive(Clone, PartialEq)]
 enum Direction {
     Right,
@@ -51,8 +53,7 @@ impl Game {
 }
 
 struct Snake {
-    pos_x: i32,
-    pos_y: i32,
+    body: LinkedList<(i32, i32)>,
     dir: Direction,
 }
 
@@ -60,30 +61,40 @@ impl Snake {
     fn render(&self, gl: &mut GlGraphics, args: &RenderArgs) {
         let RED = [1.0, 0.0, 0.0, 1.0];
 
-        let square =
-            graphics::rectangle::square((self.pos_x * 20) as f64, (self.pos_y * 20) as f64, 20_f64);
+        let square: Vec<graphics::types::Rectangle> = self
+            .body
+            .iter()
+            .map(|&(x, y)| graphics::rectangle::square((x * 20) as f64, (y * 20) as f64, 20_f64))
+            .collect();
 
         gl.draw(args.viewport(), |c, gl| {
             let transform = c.transform;
 
-            graphics::rectangle(RED, square, transform, gl);
+            square
+                .into_iter()
+                .for_each(|square| graphics::rectangle(RED, square, transform, gl));
         })
     }
 
     fn update(&mut self) {
+        let mut newhead = (*self.body.front().expect("Snake has no body")).clone();
+
         match self.dir {
-            Direction::Down => self.pos_y += 1,
-            Direction::Left => self.pos_x -= 1,
-            Direction::Right => self.pos_x += 1,
-            Direction::Up => self.pos_y -= 1,
+            Direction::Down => newhead.1 += 1,
+            Direction::Left => newhead.0 -= 1,
+            Direction::Right => newhead.0 += 1,
+            Direction::Up => newhead.1 -= 1,
         }
+
+        self.body.push_front(newhead);
+        self.body.pop_back().unwrap();
     }
 }
 
 fn main() {
     let opengl = OpenGL::V4_5;
 
-    let mut window: Window = WindowSettings::new("spinning-square", (200, 200))
+    let mut window: Window = WindowSettings::new("Snake", (500, 500))
         .graphics_api(opengl)
         .exit_on_esc(true)
         .build()
@@ -92,9 +103,8 @@ fn main() {
     let mut app = Game {
         gl: GlGraphics::new(opengl),
         snake: Snake {
-            pos_x: 0,
-            pos_y: 0,
-            dir: Direction::Down,
+            body: LinkedList::from_iter((vec![(0, 0), (0, 1)]).into_iter()),
+            dir: Direction::Right,
         },
     };
 
@@ -104,7 +114,7 @@ fn main() {
             app.render(&args);
         }
 
-        if let Some(args) = e.update_args() {
+        if let Some(_u) = e.update_args() {
             app.update();
         }
 
