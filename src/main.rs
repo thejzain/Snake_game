@@ -9,6 +9,7 @@ use piston::event_loop::*;
 use piston::input::*;
 use piston::window::WindowSettings;
 
+use rand::Rng;
 use std::collections::LinkedList;
 
 #[derive(Clone, PartialEq)]
@@ -22,6 +23,7 @@ enum Direction {
 pub struct Game {
     gl: GlGraphics,
     snake: Snake,
+    apple: Apple,
 }
 
 impl Game {
@@ -30,8 +32,10 @@ impl Game {
 
         self.gl
             .draw(arg.viewport(), |_c, gl| graphics::clear(GREEN, gl));
+        println!("apple {},{}", self.apple.x, self.apple.y);
 
         self.snake.render(&mut self.gl, arg);
+        self.apple.render(&mut self.gl, arg);
     }
 
     fn update(&mut self) {
@@ -91,6 +95,21 @@ impl Snake {
     }
 }
 
+struct Apple {
+    x: i32,
+    y: i32,
+}
+
+impl Apple {
+    fn render(&self, gl: &mut GlGraphics, args: &RenderArgs) {
+        // let white = [0.0, 0.0, 0.0, 0.0];
+        // gl.draw(args.viewport(), |c, gl| {
+        //     let transform = c.transform;
+
+        // })
+    }
+}
+
 fn main() {
     let opengl = OpenGL::V4_5;
 
@@ -100,11 +119,16 @@ fn main() {
         .build()
         .unwrap();
 
+    let mut rng = rand::thread_rng();
     let mut app = Game {
         gl: GlGraphics::new(opengl),
         snake: Snake {
             body: LinkedList::from_iter((vec![(0, 0), (0, 1)]).into_iter()),
             dir: Direction::Right,
+        },
+        apple: Apple {
+            x: rng.gen_range(0..20),
+            y: rng.gen_range(0..20),
         },
     };
 
