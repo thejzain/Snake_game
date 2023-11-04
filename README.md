@@ -41,7 +41,7 @@ The `Apple` struct represents the apple in the game. It contains the following a
 * `x`: The x-coordinate of the apple.
 * `y`: The y-coordinate of the apple.
 
-### Example usage
+<!-- ### Example usage
 
 Here is an example of how to use the game:
 
@@ -79,7 +79,7 @@ fn main() {
         }
     }
 }
-```
+``` -->
 
 ## Conclusion
 
