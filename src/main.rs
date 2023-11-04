@@ -30,7 +30,7 @@ pub struct Game {
 
 impl Game {
     fn render(&mut self, arg: &RenderArgs) {
-        const  WHITE:[f32;4] = [1.0, 1.0, 1.0, 1.0];
+        const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
         self.gl
             .draw(arg.viewport(), |_c, gl| graphics::clear(WHITE, gl));
@@ -84,14 +84,27 @@ impl Snake {
     fn update(&mut self, apple: &mut Apple, game_update: &mut bool) {
         let mut newhead = (*self.body.front().expect("Snake has no body")).clone();
 
-        match self.dir {
-            Direction::Down => newhead.1 += 1,
-            Direction::Left => newhead.0 -= 1,
-            Direction::Right => newhead.0 += 1,
-            Direction::Up => newhead.1 -= 1,
-            Direction::None => {
-                newhead.1 = 0;
-                newhead.0 = 0
+        if newhead.0 < 25 && newhead.0 >= 0 && newhead.1 < 25 && newhead.1 >=0 {
+            match self.dir {
+                Direction::Down => newhead.1 += 1,
+                Direction::Left => newhead.0 -= 1,
+                Direction::Right => newhead.0 += 1,
+                Direction::Up => newhead.1 -= 1,
+                Direction::None => {
+                    newhead.1 = 0;
+                    newhead.0 = 0
+                }
+            }
+        } else {
+            match self.dir {
+                Direction::Down => newhead.1 = 0,
+                Direction::Left => newhead.0 = 24,
+                Direction::Right => newhead.0 = 0,
+                Direction::Up => newhead.1 = 24,
+                Direction::None => {
+                    newhead.1 = 0;
+                    newhead.0 = 0
+                }
             }
         }
 
