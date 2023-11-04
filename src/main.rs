@@ -89,12 +89,33 @@ impl Snake {
             Direction::Up => newhead.1 -= 1,
         }
 
+        self.collision(&newhead);
         self.body.push_front(newhead);
         self.body.pop_back().unwrap();
+
         if apple.x == newhead.0 && apple.y == newhead.1 {
             self.body.push_front(newhead);
             apple.update(&self);
         }
+    }
+
+    fn collision(&self, newhead: &(i32, i32)) {
+        self.body.iter().for_each(
+            |&(x, y)| match newhead {
+                n if n.0 == x && n.1 == y => {
+                    println!("Collision Game over");
+                }
+                _ => {}
+            },
+            //This also works
+
+            // if newhead.0==x && newhead.1==y{
+            //     println!("Collision Game over");
+            // }
+
+            //why to use pattern matching here instead of if else ? cause pattern matching is working with use of jump command while compiling to mc
+            //its faster than if else which is typically implemented with conditional branches
+        )
     }
 }
 
@@ -132,7 +153,7 @@ impl Apple {
         snake.body.iter().for_each(|&(x, y)| {
             if self.x == x && self.y == y {
                 self.update(&snake);
-                println!("update");
+                // println!("update");
             }
         });
     }
