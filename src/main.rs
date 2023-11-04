@@ -18,12 +18,14 @@ enum Direction {
     Left,
     Up,
     Down,
+    None,
 }
 
 pub struct Game {
     gl: GlGraphics,
     snake: Snake,
     apple: Apple,
+    game_update: bool,
 }
 
 impl Game {
@@ -38,7 +40,7 @@ impl Game {
     }
 
     fn update(&mut self) {
-        self.snake.update(&mut self.apple);
+        self.snake.update(&mut self.apple, &mut self.game_update);
     }
 
     fn pressed(&mut self, btn: &Button) {
@@ -79,7 +81,7 @@ impl Snake {
         })
     }
 
-    fn update(&mut self, apple: &mut Apple) {
+    fn update(&mut self, apple: &mut Apple, game_update: &mut bool) {
         let mut newhead = (*self.body.front().expect("Snake has no body")).clone();
 
         match self.dir {
@@ -87,9 +89,13 @@ impl Snake {
             Direction::Left => newhead.0 -= 1,
             Direction::Right => newhead.0 += 1,
             Direction::Up => newhead.1 -= 1,
+            Direction::None => {
+                newhead.1 = 0;
+                newhead.0 = 0
+            }
         }
 
-        self.collision(&newhead);
+        self.collision(&newhead, game_update);
         self.body.push_front(newhead);
         self.body.pop_back().unwrap();
 
@@ -99,11 +105,13 @@ impl Snake {
         }
     }
 
-    fn collision(&self, newhead: &(i32, i32)) {
+    fn collision(&mut self, newhead: &(i32, i32), game_update: &mut bool) {
         self.body.iter().for_each(
             |&(x, y)| match newhead {
                 n if n.0 == x && n.1 == y => {
                     println!("Collision Game over");
+                    self.dir = Direction::None;
+                    *game_update = false;
                 }
                 _ => {}
             },
@@ -115,7 +123,7 @@ impl Snake {
 
             //why to use pattern matching here instead of if else ? cause pattern matching is working with use of jump command while compiling to mc
             //its faster than if else which is typically implemented with conditional branches
-        )
+        );
     }
 }
 
@@ -175,6 +183,7 @@ fn main() {
             dir: Direction::Right,
         },
         apple: Apple::new(),
+        game_update: true,
     };
 
     let mut events = Events::new(EventSettings::new()).ups(8);
@@ -183,8 +192,10 @@ fn main() {
             app.render(&args);
         }
 
-        if let Some(_u) = e.update_args() {
-            app.update();
+        if app.game_update {
+            if let Some(_u) = e.update_args() {
+                app.update();
+            }
         }
 
         if let Some(k) = e.button_args() {
