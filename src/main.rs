@@ -28,18 +28,17 @@ pub struct Game {
 
 impl Game {
     fn render(&mut self, arg: &RenderArgs) {
-        let GREEN = [0.0, 1.0, 0.0, 1.0];
+        let green = [0.0, 1.0, 0.0, 1.0];
 
         self.gl
-            .draw(arg.viewport(), |_c, gl| graphics::clear(GREEN, gl));
-        println!("apple {},{}", self.apple.x, self.apple.y);
+            .draw(arg.viewport(), |_c, gl| graphics::clear(green, gl));
 
         self.snake.render(&mut self.gl, arg);
         self.apple.render(&mut self.gl, arg);
     }
 
     fn update(&mut self) {
-        self.snake.update()
+        self.snake.update(&mut self.apple);
     }
 
     fn pressed(&mut self, btn: &Button) {
@@ -63,7 +62,7 @@ struct Snake {
 
 impl Snake {
     fn render(&self, gl: &mut GlGraphics, args: &RenderArgs) {
-        let RED = [1.0, 0.0, 0.0, 1.0];
+        let red = [1.0, 0.0, 0.0, 1.0];
 
         let square: Vec<graphics::types::Rectangle> = self
             .body
@@ -76,11 +75,11 @@ impl Snake {
 
             square
                 .into_iter()
-                .for_each(|square| graphics::rectangle(RED, square, transform, gl));
+                .for_each(|square| graphics::rectangle(red, square, transform, gl));
         })
     }
 
-    fn update(&mut self) {
+    fn update(&mut self, apple: &mut Apple) {
         let mut newhead = (*self.body.front().expect("Snake has no body")).clone();
 
         match self.dir {
@@ -92,6 +91,10 @@ impl Snake {
 
         self.body.push_front(newhead);
         self.body.pop_back().unwrap();
+        if apple.x == newhead.0 && apple.y == newhead.1 {
+            self.body.push_front(newhead);
+            apple.update(&self);
+        }
     }
 }
 
@@ -101,6 +104,13 @@ struct Apple {
 }
 
 impl Apple {
+    fn new() -> Apple {
+        let mut rng = rand::thread_rng();
+        Apple {
+            x: rng.gen_range(0..20),
+            y: rng.gen_range(0..20),
+        }
+    }
     fn render(&self, gl: &mut GlGraphics, args: &RenderArgs) {
         const BLACK: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
@@ -115,6 +125,17 @@ impl Apple {
             graphics::rectangle(BLACK, square, transform, gl)
         });
     }
+    fn update(&mut self, snake: &Snake) {
+        let mut rng = rand::thread_rng();
+        self.x = rng.gen_range(0..20);
+        self.y = rng.gen_range(0..20);
+        snake.body.iter().for_each(|&(x, y)| {
+            if self.x == x && self.y == y {
+                self.update(&snake);
+                println!("update");
+            }
+        });
+    }
 }
 
 fn main() {
@@ -126,17 +147,13 @@ fn main() {
         .build()
         .unwrap();
 
-    let mut rng = rand::thread_rng();
     let mut app = Game {
         gl: GlGraphics::new(opengl),
         snake: Snake {
             body: LinkedList::from_iter((vec![(0, 0), (0, 1)]).into_iter()),
             dir: Direction::Right,
         },
-        apple: Apple {
-            x: rng.gen_range(0..20),
-            y: rng.gen_range(0..20),
-        },
+        apple: Apple::new(),
     };
 
     let mut events = Events::new(EventSettings::new()).ups(8);
