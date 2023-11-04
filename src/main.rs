@@ -30,10 +30,10 @@ pub struct Game {
 
 impl Game {
     fn render(&mut self, arg: &RenderArgs) {
-        let green = [0.0, 1.0, 0.0, 1.0];
+        const  WHITE:[f32;4] = [1.0, 1.0, 1.0, 1.0];
 
         self.gl
-            .draw(arg.viewport(), |_c, gl| graphics::clear(green, gl));
+            .draw(arg.viewport(), |_c, gl| graphics::clear(WHITE, gl));
 
         self.snake.render(&mut self.gl, arg);
         self.apple.render(&mut self.gl, arg);
@@ -141,7 +141,7 @@ impl Apple {
         }
     }
     fn render(&self, gl: &mut GlGraphics, args: &RenderArgs) {
-        const BLACK: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+        const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
         let x = self.x * 20;
         let y = self.y * 20;
